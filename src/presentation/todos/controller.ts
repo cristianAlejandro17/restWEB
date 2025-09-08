@@ -71,6 +71,7 @@ export class TodosController {
       res.status(400).json({ error: ` id ${id} not found` });
     }
     console.log("llega aqui");
+    console.log("llega aqui");
     const TodoById = todos.find((todo) => todo.id === id);
     if (!TodoById)
       return res.status(400).json({ error: ` id ${id} not found` });

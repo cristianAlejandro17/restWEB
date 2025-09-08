@@ -1,0 +1,72 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TodosController = void 0;
+let todos = [
+    { id: 1, text: "buy milk", date: new Date() },
+    { id: 2, text: "buy funkos", date: null },
+    { id: 3, text: "buy jacket", date: new Date() },
+];
+class TodosController {
+    //*DI
+    constructor() { }
+    getTodos = (req, res) => {
+        return res.json(todos);
+    };
+    getTodoById = (req, res) => {
+        const id = +req.params.id;
+        console.log(id);
+        if (isNaN(id)) {
+            res.status(400).json({ error: ` id ${id} is not a number` });
+        }
+        const TodoById = todos.find((todo) => todo.id === id);
+        TodoById
+            ? res.json(TodoById)
+            : res.status(404).json({ error: `TODO with id ${id} not found` });
+    };
+    createTodo = (req, res) => {
+        const { text } = req.body;
+        if (!text)
+            return res.status(400).json({ error: "text property is required" });
+        const newTodo = {
+            id: todos.length + 1,
+            text: text,
+            date: null,
+        };
+        todos.push(newTodo);
+        res.json(newTodo);
+    };
+    updateTodoById = (req, res) => {
+        const id = +req.params.id;
+        console.log(id);
+        if (isNaN(id)) {
+            res.status(400).json({ error: ` id ${id} is not a number` });
+        }
+        const TodoById = todos.find((todo) => todo.id === id);
+        if (!TodoById) {
+            res.status(400).json({ error: ` todo with id ${id}  not found` });
+        }
+        const { text } = req.body;
+        if (!text)
+            return res.status(400).json({ error: "text property is required" });
+        TodoById.text = text;
+        res.json(TodoById);
+    };
+    deleteTodoById = (req, res) => {
+        const id = +req.params.id;
+        console.log(id);
+        if (isNaN(id)) {
+            res.status(400).json({ error: ` id ${id} is not a number` });
+        }
+        if (id === undefined) {
+            res.status(400).json({ error: ` id ${id} not found` });
+        }
+        console.log("llega aqui");
+        const TodoById = todos.find((todo) => todo.id === id);
+        if (!TodoById)
+            return res.status(400).json({ error: ` id ${id} not found` });
+        todos = todos.filter((todo) => todo.id !== TodoById.id);
+        res.json({ message: ` todo with id ${id} eliminates`, TodoById });
+    };
+}
+exports.TodosController = TodosController;
+//# sourceMappingURL=controller.js.map
