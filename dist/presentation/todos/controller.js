@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TodosController = void 0;
+const postgres_1 = require("../../data/postgres");
+const todos_1 = require("../../domain/dtos/todos");
 let todos = [
     { id: 1, text: "buy milk", date: new Date() },
     { id: 2, text: "buy funkos", date: null },
@@ -9,63 +11,77 @@ let todos = [
 class TodosController {
     //*DI
     constructor() { }
-    getTodos = (req, res) => {
-        return res.json(todos);
+    getTodos = async (req, res) => {
+        const getTodos = await postgres_1.prisma.todo.findMany();
+        return res.json(getTodos);
     };
-    getTodoById = (req, res) => {
+    getTodoById = async (req, res) => {
         const id = +req.params.id;
         console.log(id);
         if (isNaN(id)) {
-            res.status(400).json({ error: ` id ${id} is not a number` });
+            return res.status(400).json({ error: ` id ${id} is not a number` });
         }
-        const TodoById = todos.find((todo) => todo.id === id);
+        const TodoById = await postgres_1.prisma.todo.findUnique({ where: { id } });
         TodoById
             ? res.json(TodoById)
             : res.status(404).json({ error: `TODO with id ${id} not found` });
     };
-    createTodo = (req, res) => {
-        const { text } = req.body;
-        if (!text)
-            return res.status(400).json({ error: "text property is required" });
-        const newTodo = {
-            id: todos.length + 1,
-            text: text,
-            date: null,
-        };
-        todos.push(newTodo);
-        res.json(newTodo);
+    createTodo = async (req, res) => {
+        const [error, createTodoDto] = todos_1.CreateTodoDto.create(req.body);
+        if (error)
+            return res.status(400).json({ error });
+        const todo = await postgres_1.prisma.todo.create({ data: createTodoDto });
+        res.json(todo);
     };
-    updateTodoById = (req, res) => {
+    updateTodoById = async (req, res) => {
+        const id = +req.params.id;
+        const [error, updateTodoDto] = todos_1.UpdateTodoDto.update({ ...req.body, id });
+        if (error)
+            return res.status(400).json({ error });
+        console.log('llega aqui');
+        try {
+            const TodoById = await postgres_1.prisma.todo.update({
+                where: {
+                    id
+                },
+                data: updateTodoDto.values,
+            });
+            console.log(TodoById, 'todobyid');
+            res.json(TodoById);
+        }
+        catch (error) {
+            if (error.code === "P2025") {
+                return res.status(404).json({ error: `Todo with id ${id} not found` });
+            }
+            console.log(error);
+            return res.status(500).json({ error: "Internal server error 2" });
+        }
+    };
+    deleteTodoById = async (req, res) => {
         const id = +req.params.id;
         console.log(id);
         if (isNaN(id)) {
-            res.status(400).json({ error: ` id ${id} is not a number` });
-        }
-        const TodoById = todos.find((todo) => todo.id === id);
-        if (!TodoById) {
-            res.status(400).json({ error: ` todo with id ${id}  not found` });
-        }
-        const { text } = req.body;
-        if (!text)
-            return res.status(400).json({ error: "text property is required" });
-        TodoById.text = text;
-        res.json(TodoById);
-    };
-    deleteTodoById = (req, res) => {
-        const id = +req.params.id;
-        console.log(id);
-        if (isNaN(id)) {
-            res.status(400).json({ error: ` id ${id} is not a number` });
+            return res.status(400).json({ error: ` id ${id} is not a number` });
         }
         if (id === undefined) {
-            res.status(400).json({ error: ` id ${id} not found` });
+            return res.status(400).json({ error: ` id ${id} not found` });
         }
         console.log("llega aqui");
-        const TodoById = todos.find((todo) => todo.id === id);
-        if (!TodoById)
-            return res.status(400).json({ error: ` id ${id} not found` });
-        todos = todos.filter((todo) => todo.id !== TodoById.id);
-        res.json({ message: ` todo with id ${id} eliminates`, TodoById });
+        console.log("llega aqui");
+        try {
+            const TodoById = await postgres_1.prisma.todo.delete({
+                where: {
+                    id,
+                },
+            });
+            res.json(TodoById);
+        }
+        catch (error) {
+            if (error.code === "P2025") {
+                return res.status(404).json({ error: `Todo with id ${id} not found` });
+            }
+            return res.status(500).json({ error: "Internal server error" });
+        }
     };
 }
 exports.TodosController = TodosController;

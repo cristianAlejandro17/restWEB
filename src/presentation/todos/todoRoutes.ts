@@ -8,7 +8,7 @@ export class TodoRoutes {
 
     router.get("/",TodoController.getTodos )
     router.get("/:id",TodoController.getTodoById )
-    router.post("/create",TodoController.createTodo )
+    router.post("/",TodoController.createTodo )
     router.put("/:id",TodoController.updateTodoById )
     router.delete("/:id",TodoController.deleteTodoById )
 

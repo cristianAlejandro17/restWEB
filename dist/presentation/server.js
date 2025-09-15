@@ -32,7 +32,7 @@ class Server {
             res.sendFile(indexPath);
         });
         this.app.listen(this.port, () => {
-            console.log(`Server running on por ${this.port}`);
+            console.log(`Server running on port ${this.port}`);
         });
     }
 }
