@@ -15,6 +15,7 @@ export class UpdateTodoDto {
   static update(props: { [key: string]: any }): [string?, UpdateTodoDto?] {
     const { id, text, completedAdt } = props;
     console.log(id,'id desde dto')
+    console.log(id,'id desde dto')
     if (!id || isNaN(Number(id))) {
       return ["id must be a valid number"];
     }
